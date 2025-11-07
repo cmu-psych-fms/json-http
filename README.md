@@ -22,6 +22,7 @@ implementations with networking support, such as [LispWorks](https://www.lispwor
 * Start it by running `./rrun.sh`
 
 * Test that it is working by running, in a different shell, `curl -d @sample-input.json http://localhost/decision`
+which makes an HTTP request to the server sending the contents of the file `sample-input.json` as POST data.
 
 * This should print something like
 
@@ -60,7 +61,8 @@ all upper case version in the `keyword` package
 * The JSON `null` value is convert to the Lisp symbol `null`, which is exported from the `common-lisp` package, and so is typically available in all pacakges;
 this avoids the ambiguity that would result from represent both JSON `false` and JSON `null` by the same Lisp value `nil`
 
-Thus, the example input from Ben's first pass at description of requests that will be made in the JAG ⇔ Cognitive Model communication,
+Thus, the example input from Ben's first pass at description of requests that will be made in the JAG ⇔ Cognitive Model communication
+(which is available in `sample-input.json` in the repo),
 
     {
         "actions": [
@@ -117,4 +119,32 @@ will be converted to the Lisp form,
           (:NAME "new_pot" :TYPE "int"))
         :EXPECTED-COST NULL :EXPECTED-VALUE NULL)))
 
-When performing the inverse transformation
+When performing the inverse transformation on the value returned by `run-model` JSON object keys
+are create by taking the print name of the Lisp keyword symbol, downcasing it, and replacing hyphens by underscores.
+This corresponds to the convention I believe we have adopted in this project of always using snake_case for such keys
+when they are multi-word. Note that if other conventions are used they will typically be corrected converted to Lisp
+keywords on input, but to snake_case on output. If we change the convention it will be easy to change the output
+form to some other convention, but it must be used uniformly.
+
+If there is no `cl-user::run-model` function defined a stub version (`jh::default-run-model`) is called instead, which
+simply returns a constant return value, the example output from the same document referred to above. It will also
+write to the log file the Lisp representations of the incoming JSON and constant return value; this may be
+useful for testing and/or understanding the Lisp format of the JSON when crafting the `run-model` function.
+
+
+##  Online version
+
+There is also currently running a copy of this server on on `mneme.lan.cmu.edu` which may be useful for testing.
+Currently this version does not have a real `cl-user::run-model` so uses the default, but we can easily update
+it when a real `run-model` function is available. To use it simply point an HTTP client, sending the JSON
+input using the POST method, at
+
+    http://mneme.lan.cmu.edu:9899/decision
+
+
+## Errors
+
+If there is an error obtaining the POST data, assembling it into a UTF-8 string, or parsing that string as JSON,
+an HTTP error code 400 will be returned. For other errors an HTTP error code 500 will be returned.
+In either case there will also be a returned value, a JSON string containing a message describing the error
+in a little more detail.

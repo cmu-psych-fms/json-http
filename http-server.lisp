@@ -52,7 +52,8 @@
   (let ((result '(:ACTIONS
                    #((:ACTION-ID "d44cc237-9e09-4cb9-97aa-6f32831df844" :PROBABILITY 1.0)
                      (:ACTION-ID "bf93c4cc-6063-458e-afa4-b024f5c9abb6" :PROBABILITY 0.0)))))
-    (format t "~2%argument to default-run-model:~%~W~2%return value:~%~W~2%" json result)
+    (format v:*log-stream* "~2%argument to default-run-model:~%~W~2%return value:~%~W~2%"
+            json result)
     result))
 
 (ht:define-easy-handler (decision :uri "/decision") ()
