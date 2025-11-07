@@ -5,7 +5,7 @@ to send a single JSON value, calls a Lisp function on the Lisp version of that v
 return value of that function to JSON and returns it to the caller. It was created for use in the DARPA Project Kallisti,
 but likely will have use in other projects, too. Various choices made here are simply best guesses for
 what we want, and will undoubtedly evolve as we negotiate the needs of our caller(s). When using this
-for other projects it will probably be best to clone it and modify it to taste for those other projects.
+for other projects it will probably be best to fork it and modify it to taste for those other projects.
 It currently uses port 9899, but this can, of course, be easily changed.
 
 This has only been tested in [SBCL](https://www.sbcl.org) both on MacOS on M4 and on Ubuntu Linux on x86-64 but will probably work in other modern Common Lisp
@@ -179,7 +179,7 @@ input using the POST method, at
 
 If there is an error obtaining the POST data, assembling it into a UTF-8 string, or parsing that string as JSON,
 an HTTP error code 400 will be returned. For other errors an HTTP error code 500 will be returned.
-In either case there will also be a returned value, a JSON string containing a message describing the error
-in a little more detail.
+In either case there will also be a returned value, a JSON string containing a message describing the error.
+
 
 
