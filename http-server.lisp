@@ -6,8 +6,9 @@
 ;;; a UTF-8 string or parsing that string as JSON it returns HTTP status 400, and if it
 ;;; subsequently encounters and error it returns HTTP status 500.
 
-(ql:quickload '(:alexandria :iterate :hunchentoot :babel :com.inuoe.jzon
-                :cl-change-case :uiop :vom))
+#-(and bordeaux-threads hunchentoot)
+(ql:quickload '(:cl-interpol :alexandria :iterate :hunchentoot :babel
+                :com.inuoe.jzon :cl-change-case :uiop :vom))
 
 (defpackage :json-http
   (:nicknames :jh)
@@ -17,6 +18,8 @@
   (:export #:start-server #:stop-server #:run-standalone))
 
 (in-package :json-http)
+
+(interpol:enable-interpol-syntax :modify-*readtable* t)
 
 (defparameter *port* 9899)
 (defparameter *debug* nil)

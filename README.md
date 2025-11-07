@@ -31,6 +31,37 @@ which makes an HTTP request to the server sending the contents of the file `samp
         {"action_id":"bf93c4cc-6063-458e-afa4-b024f5c9abb6","probability":0.0}]}
 
 
+## Docker container
+
+If you don't want to install SBCL and so on on a local machine it is also possible to build and run a Docker container, defined by the Dockerfile in the repo. For example,
+
+    (dfm) dfm@carlisle:~/work/kallisti/json-http$ docker build -t json-http .
+    [+] Building 42.3s (21/21) FINISHED                                                                      docker:default
+    ... [lots of Docker spew elided here] ...
+     => exporting to image                                                                                             0.3s
+     => => exporting layers                                                                                            0.3s
+     => => writing image sha256:1acced5298f4b3825d2b28bdde0be6ed3b2a518ec88fca3822cfb1860f8497f9                       0.0s
+     => => naming to docker.io/library/json-http
+
+Then run
+
+    (dfm) dfm@carlisle:~/work/kallisti/json-http$ sudo docker run -p 9899:9899 json-http
+    This is SBCL 2.5.3, an implementation of ANSI Common Lisp.
+    More information about SBCL is available at <http://www.sbcl.org/>.
+
+    SBCL is free software, provided as is, with absolutely no warranty.
+    It is mostly in the public domain; some portions are provided under
+    BSD-style licenses.  See the CREDITS and COPYING files in the
+    distribution for more information.
+    ... [Quicklisp spew elided here] ...
+    <INFO> [17:06:52] json-http - Started #<EASY-ACCEPTOR (host *, port 9899)>
+
+And in a different shell,
+
+    (dfm) dfm@carlisle:~/work/kallisti/json-http$ curl -d @sample-input.json http://localhost:9899/decision
+    {"actions":[{"action_id":"d44cc237-9e09-4cb9-97aa-6f32831df844","probability":1.0},{"action_id":"bf93c4cc-6063-458e-afa4-b024f5c9abb6","probability":0.0}]}
+
+
 ## Hooking up a Lisp function to process the JSON
 
 When the server receives a request it calls the function named `run-model` in the `cl-user` package, passing it
@@ -131,6 +162,8 @@ simply returns a constant return value, the example output from the same documen
 write to the log file the Lisp representations of the incoming JSON and constant return value; this may be
 useful for testing and/or understanding the Lisp format of the JSON when crafting the `run-model` function.
 
+And this currently has only one query end point. When we want more it should not be difficult to add them.
+
 
 ##  Online version
 
@@ -148,3 +181,5 @@ If there is an error obtaining the POST data, assembling it into a UTF-8 string,
 an HTTP error code 400 will be returned. For other errors an HTTP error code 500 will be returned.
 In either case there will also be a returned value, a JSON string containing a message describing the error
 in a little more detail.
+
+
