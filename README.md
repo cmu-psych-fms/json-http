@@ -31,3 +31,90 @@ implementations with networking support, such as [LispWorks](https://www.lispwor
 
 
 ## Hooking up a Lisp function to process the JSON
+
+When the server receives a request it calls the function named `run-model` in the `cl-user` package, passing it
+a Lisp from of the JSON request as its sole argument. This function is in the `cl-user` package because (a) most
+ACT-R programmers work in the that package, and (b) even when not using ACT-R that is the preferred package of
+the folks who I expect will be using this. Note that the server code itself is isolated in a different package `json-http`
+(with the abbreviated nickname `jh'), from which are exported `run-standalone`, `jh:start-server` and `jh:stop-server`.
+When developing a `cl-user::run-model` function it will typically be most convenient to `load` the single source file
+`http-server.lisp` and call `jh:start-server` from Lisp.
+
+The Lisp form of JSON is constructed recursively as follows:
+
+* JSON objects are represented by Lisp plists, the keys of which are Lisp keywords.
+
+* The keys are constructed from the JSON key strings by replacing underscores by hyphens and interning their
+all upper case version in the `keyword` package
+
+* JSON strings, other than keys in objects, are passed through unchanged
+
+* JSON integers are passed through unchanged
+
+* JSON floating point numbers are passed through as Lisp floats, whose precision is determined by the current value of `*read-default-float-format*`
+
+* JSON lists are converted to Lisp simple vectors; Lisp lists are *not* used because of the ambiguity that could result with plists representing JSON objects
+
+* The JSON Booleans `true` and `false` are converted to the Lisp symbols `t` and `nil`, repsectively
+
+* The JSON `null` value is convert to the Lisp symbol `null`, which is exported from the `common-lisp` package, and so is typically available in all pacakges;
+this avoids the ambiguity that would result from represent both JSON `false` and JSON `null` by the same Lisp value `nil`
+
+Thus, the example input from Ben's first pass at description of requests that will be made in the JAG ⇔ Cognitive Model communication,
+
+    {
+        "actions": [
+            {
+                "actors": ["A"],
+                "urn": "urn:centipede:take",
+                "name": "Take",
+                "id": "d44cc237-9e09-4cb9-97aa-6f32831df844",
+                "inputs": [
+                    { "name": "turn", "type": "int", "value": 0 },
+                    { "name": "pot", "type": "int", "value": 5 }
+                ],
+                "outputs": [
+                    { "name": "game_over", "type": "boolean" },
+                    { "name": "payoff", "type": "int" }
+                ],
+                "expected_cost": null,
+                "expected_value": { "payoff": 4 }
+            },
+            {
+                "actors": ["A"],
+                "urn": "urn:centipede:push",
+                "name": "Push",
+                "id": "bf93c4cc-6063-458e-afa4-b024f5c9abb6",
+                "inputs": [
+                    { "name": "turn", "type": "int", "value": 0 },
+                    { "name": "pot", "type": "int", "value": 5 }
+                ],
+                "outputs": [
+                    { "name": "game_over", "type": "boolean" },
+                    { "name": "payoff", "type": "int" },
+                    { "name": "new_pot", "type": "int" }
+                ],
+                "expected_cost": null,
+                "expected_value": null
+            }
+        ]
+    }
+
+will be converted to the Lisp form,
+
+    (:ACTIONS
+     #((:ACTORS #("A") :URN "urn:centipede:take" :NAME "Take" :ID
+        "d44cc237-9e09-4cb9-97aa-6f32831df844" :INPUTS
+        #((:NAME "turn" :TYPE "int" :VALUE 0) (:NAME "pot" :TYPE "int" :VALUE 5))
+        :OUTPUTS
+        #((:NAME "game_over" :TYPE "boolean") (:NAME "payoff" :TYPE "int"))
+        :EXPECTED-COST NULL :EXPECTED-VALUE (:PAYOFF 4))
+       (:ACTORS #("A") :URN "urn:centipede:push" :NAME "Push" :ID
+        "bf93c4cc-6063-458e-afa4-b024f5c9abb6" :INPUTS
+        #((:NAME "turn" :TYPE "int" :VALUE 0) (:NAME "pot" :TYPE "int" :VALUE 5))
+        :OUTPUTS
+        #((:NAME "game_over" :TYPE "boolean") (:NAME "payoff" :TYPE "int")
+          (:NAME "new_pot" :TYPE "int"))
+        :EXPECTED-COST NULL :EXPECTED-VALUE NULL)))
+
+When performing the inverse transformation
