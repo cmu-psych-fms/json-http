@@ -53,8 +53,8 @@
   (v:info "No run-model function was available so using a default stub")
   (let* ((ids (map 'list (lambda (x) (getf x :id)) (getf json :actions)))
          (p (float (/ 1 (length ids))))
-         (result (coerce (mapcar (lambda (x) `(:action-id ,x :probability ,p)) ids)
-                         'vector)))
+         (result `(:actions ,(coerce (mapcar (lambda (x) `(:action-id ,x :probability ,p)) ids)
+                         'vector))))
     (format v:*log-stream* "~2%argument to default-run-model:~%~W~2%return value:~%~W~2%"
             json result)
     result))
