@@ -158,7 +158,7 @@ keywords on input, but to snake_case on output. If we change the convention it w
 form to some other convention, but it must be used uniformly.
 
 If there is no `cl-user::run-model` function defined a stub version (`jh::default-run-model`) is called instead, which
-simply returns a constant return value, the example output from the same document referred to above. It will also
+simply returns all the supplied action IDs with equal probabilities to drive random behavior, the example output from the same document referred to above. It will also
 write to the log file the Lisp representations of the incoming JSON and constant return value; this may be
 useful for testing and/or understanding the Lisp format of the JSON when crafting the `run-model` function.
 
