@@ -49,12 +49,12 @@
 
 (defun default-run-model (json)
   ;; The function run instead of cl-user::run-model if the latter is not defined. This
-  ;; function is just a stub that always returns a constant value, while also logging
-  ;; some information.
+  ;; function is just a stub that drives random play of the game.
   (v:info "No run-model function was available so using a default stub")
-  (let ((result '(:ACTIONS
-                   #((:ACTION-ID "d44cc237-9e09-4cb9-97aa-6f32831df844" :PROBABILITY 1.0)
-                     (:ACTION-ID "bf93c4cc-6063-458e-afa4-b024f5c9abb6" :PROBABILITY 0.0)))))
+  (let* ((ids (map 'list (lambda (x) (getf x :id)) (getf json :actions)))
+         (p (float (/ 1 (length ids))))
+         (result (coerce (mapcar (lambda (x) `(:action-id ,x :probability ,p)) ids)
+                         'vector)))
     (format v:*log-stream* "~2%argument to default-run-model:~%~W~2%return value:~%~W~2%"
             json result)
     result))
