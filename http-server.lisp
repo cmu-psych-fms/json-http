@@ -22,7 +22,7 @@
 (interpol:enable-interpol-syntax :modify-*readtable* t)
 
 (defparameter *port* 9899)
-(defparameter *debug* nil)
+(defparameter *debug* t)
 (defparameter *access-log* "json-http-access.log")
 
 (defun canonicalize-jzon (value)
@@ -49,12 +49,12 @@
 
 (defun default-run-model (json)
   ;; The function run instead of cl-user::run-model if the latter is not defined. This
-  ;; function is just a stub that drives random play of the game.
+  ;; function is just a stub that always returns a constant value, while also logging
+  ;; some information.
   (v:info "No run-model function was available so using a default stub")
-  (let* ((ids (map 'list (lambda (x) (getf x :id)) (getf json :actions)))
-         (p (float (/ 1 (length ids))))
-         (result `(:actions ,(coerce (mapcar (lambda (x) `(:action-id ,x :probability ,p)) ids)
-                         'vector))))
+  (let ((result '(:ACTIONS
+                   #((:ACTION-ID "d44cc237-9e09-4cb9-97aa-6f32831df844" :PROBABILITY 1.0)
+                     (:ACTION-ID "bf93c4cc-6063-458e-afa4-b024f5c9abb6" :PROBABILITY 0.0)))))
     (format v:*log-stream* "~2%argument to default-run-model:~%~W~2%return value:~%~W~2%"
             json result)
     result))
@@ -72,7 +72,8 @@
             (progn
               (setf json (canonicalize-jzon json))
               (v:debug1 "JSON converted to Lisp ~S" json)
-              (let* ((sym (find-symbol "RUN-MODEL" 'common-lisp-user))
+              (let* (;(sym (find-symbol "RUN-MODEL" 'common-lisp-user))
+                     (sym (find-symbol "RUN-MODEL" :expert-mind))
                      (fn (or (and sym (symbol-function sym)) #'default-run-model))
                      (result (funcall fn json)))
                 (v:debug "run-model returned ~S" result)
