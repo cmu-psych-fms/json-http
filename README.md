@@ -1,4 +1,4 @@
-# Lisp JSON over HTTP server for Project Kallisti
+# Lisp JSON over HTTP server for Project MINDSET
 
 This is a simple HTTP server implemented in Common Lisp that takes JSON requests using the POST method
 to send a single JSON value, calls a Lisp function on the Lisp version of that value, converts the
@@ -19,16 +19,10 @@ implementations with networking support, such as [LispWorks](https://www.lispwor
 
 * Cone this repo, and `cd` into it.
 
-* Start it by running `./rrun.sh`
+* Start it by running `./run.sh`
 
-* Test that it is working by running, in a different shell, `curl -d @sample-input.json http://localhost/decision`
-which makes an HTTP request to the server sending the contents of the file `sample-input.json` as POST data.
-
-* This should print something like
-
-    {"actions":
-        [{"action_id":"d44cc237-9e09-4cb9-97aa-6f32831df844","probability":1.0},
-        {"action_id":"bf93c4cc-6063-458e-afa4-b024f5c9abb6","probability":0.0}]}
+* Test that it is working by running, in a different shell, `curl -d @converted-test-server-data.json http://localhost/decision`
+which makes an HTTP request to the server sending the contents of the file `converted-test-server-data.json` as POST data.
 
 
 ## Docker container
@@ -64,8 +58,8 @@ And in a different shell,
 
 ## Hooking up a Lisp function to process the JSON
 
-When the server receives a request it calls the function named `run-model` in the `cl-user` package, passing it
-a Lisp from of the JSON request as its sole argument. This function is in the `cl-user` package because (a) most
+When the server receives a request it calls the function named `run-model` in the `expert-mind` package, passing it
+a Lisp from of the JSON request as its sole argument. This function is in the `expert-mind` package because (a) most
 ACT-R programmers work in the that package, and (b) even when not using ACT-R that is the preferred package of
 the folks who I expect will be using this. Note that the server code itself is isolated in a different package `json-http`
 (with the abbreviated nickname `jh'), from which are exported `run-standalone`, `jh:start-server` and `jh:stop-server`.
@@ -92,64 +86,6 @@ all upper case version in the `keyword` package
 * The JSON `null` value is convert to the Lisp symbol `null`, which is exported from the `common-lisp` package, and so is typically available in all pacakges;
 this avoids the ambiguity that would result from represent both JSON `false` and JSON `null` by the same Lisp value `nil`
 
-Thus, the example input from Ben's first pass at description of requests that will be made in the JAG ⇔ Cognitive Model communication
-(which is available in `sample-input.json` in the repo),
-
-    {
-        "actions": [
-            {
-                "actors": ["A"],
-                "urn": "urn:centipede:take",
-                "name": "Take",
-                "id": "d44cc237-9e09-4cb9-97aa-6f32831df844",
-                "inputs": [
-                    { "name": "turn", "type": "int", "value": 0 },
-                    { "name": "pot", "type": "int", "value": 5 }
-                ],
-                "outputs": [
-                    { "name": "game_over", "type": "boolean" },
-                    { "name": "payoff", "type": "int" }
-                ],
-                "expected_cost": null,
-                "expected_value": { "payoff": 4 }
-            },
-            {
-                "actors": ["A"],
-                "urn": "urn:centipede:push",
-                "name": "Push",
-                "id": "bf93c4cc-6063-458e-afa4-b024f5c9abb6",
-                "inputs": [
-                    { "name": "turn", "type": "int", "value": 0 },
-                    { "name": "pot", "type": "int", "value": 5 }
-                ],
-                "outputs": [
-                    { "name": "game_over", "type": "boolean" },
-                    { "name": "payoff", "type": "int" },
-                    { "name": "new_pot", "type": "int" }
-                ],
-                "expected_cost": null,
-                "expected_value": null
-            }
-        ]
-    }
-
-will be converted to the Lisp form,
-
-    (:ACTIONS
-     #((:ACTORS #("A") :URN "urn:centipede:take" :NAME "Take" :ID
-        "d44cc237-9e09-4cb9-97aa-6f32831df844" :INPUTS
-        #((:NAME "turn" :TYPE "int" :VALUE 0) (:NAME "pot" :TYPE "int" :VALUE 5))
-        :OUTPUTS
-        #((:NAME "game_over" :TYPE "boolean") (:NAME "payoff" :TYPE "int"))
-        :EXPECTED-COST NULL :EXPECTED-VALUE (:PAYOFF 4))
-       (:ACTORS #("A") :URN "urn:centipede:push" :NAME "Push" :ID
-        "bf93c4cc-6063-458e-afa4-b024f5c9abb6" :INPUTS
-        #((:NAME "turn" :TYPE "int" :VALUE 0) (:NAME "pot" :TYPE "int" :VALUE 5))
-        :OUTPUTS
-        #((:NAME "game_over" :TYPE "boolean") (:NAME "payoff" :TYPE "int")
-          (:NAME "new_pot" :TYPE "int"))
-        :EXPECTED-COST NULL :EXPECTED-VALUE NULL)))
-
 When performing the inverse transformation on the value returned by `run-model` JSON object keys
 are create by taking the print name of the Lisp keyword symbol, downcasing it, and replacing hyphens by underscores.
 This corresponds to the convention I believe we have adopted in this project of always using snake_case for such keys
@@ -164,11 +100,10 @@ useful for testing and/or understanding the Lisp format of the JSON when craftin
 
 And this currently has only one query end point. When we want more it should not be difficult to add them.
 
-
 ##  Online version
 
 There is also currently running a copy of this server on on `mneme.lan.cmu.edu` which may be useful for testing.
-Currently this version does not have a real `cl-user::run-model` so uses the default, but we can easily update
+Currently this version does not have a real `expert-mind::run-model` so uses the default, but we can easily update
 it when a real `run-model` function is available. To use it simply point an HTTP client, sending the JSON
 input using the POST method, at
 
